@@ -149,6 +149,17 @@ export function resolveRequestPath(message: RequestMessage) {
       console.log("parse: ", URI.parse(inputPath))
       console.log("fixedPath: ", fixedPath)
     }
+  } else if (message.method === "flowDesignService/functionDefinition") {
+    if (message.params && "fileName" in message.params && message.params.fileName) {
+      const inputPath = message.params.fileName as string;
+      const fixedPath = URI.parse(inputPath).path.substring(1);
+      message.params.fileName = fixedPath;
+    }
+    if (message.params && "projectPath" in message.params && message.params.projectPath) {
+      const inputPath = message.params.projectPath as string;
+      const fixedPath = URI.parse(inputPath).path.substring(1);
+      message.params.projectPath = fixedPath;
+    }
   }
   return message;
 }
