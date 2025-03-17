@@ -1,6 +1,6 @@
 # Ballerina WS language server
 
-This project is a server that runs the Ballerina language server via WebSocket and provides a file system interface for a web-based editor. It allows for remote file operations and supports interaction with Ballerina language features through a WebSocket connection.
+This project is a server that runs the Ballerina language server via WebSocket and provides a file system interface for a web-based editor. It allows for remote file operations and supports interaction with Ballerina language features.
 
 ## Features
 
