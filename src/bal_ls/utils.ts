@@ -91,6 +91,8 @@ export function resolveRequestPath(message: RequestMessage) {
     || message.method === "flowDesignService/getSourceCode" || message.method === "serviceDesign/getListeners"
     || message.method === "serviceDesign/getServiceModel" || message.method === "serviceDesign/addListener"
     || message.method === "typesManager/updateTypes" || message.method === "flowDesignService/deleteFlowNode"
+    || message.method === "typesManager/createGraphqlClassType" || message.method === "typesManager/getGraphqlType"
+    || message.method === "serviceDesign/addFunction"
   ) {
     if (message.params && "filePath" in message.params && message.params.filePath) {
       const inputPath = message.params.filePath as string;
