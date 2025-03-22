@@ -5,7 +5,6 @@ import { BASE_DIR, BASE_DIR_1 } from "../file_system/fsRoutes";
 import * as path from "path";
 import os from "os";
 import { exec } from 'child_process';
-import { Message } from "vscode-ws-jsonrpc";
 import { InitializeParams, InitializeRequest, RegistrationParams, RegistrationRequest, RequestMessage, ResponseMessage } from "vscode-languageserver-protocol";
 import { URI } from "vscode-uri";
 
@@ -55,12 +54,13 @@ export const getLocalDirectory = (referenceUrl: string | URL) => {
 
 export const resolveAbsolutePath = (message: string) => {
   const fileScheme = os.platform() === "win32" ? "file:///" : "file://";
-  
+
   if (message.includes(`${SCHEME}:`)) { // messages from client
     message = message.replace(new RegExp(`${SCHEME}:`, 'g'), `${fileScheme}${BASE_DIR}`);
-  } else if (message.includes(`${BASE_DIR}`) || 
-             message.includes("bala:/") || 
-             message.includes("file:/")) { // messages from lang server
+  } else if (
+    message.includes(`${BASE_DIR}`) ||
+    message.includes("bala:/") ||
+    message.includes("file:/")) { // messages from lang server
     message = os.platform() === "win32" ? message.replace(new RegExp("bala:/", 'g'), "bala://") : message;
     message = message.replace(new RegExp(`${fileScheme}${BASE_DIR}`, 'g'), `${SCHEME}:`);
     message = message.replace(new RegExp(`${fileScheme}${BASE_DIR_1}`, 'g'), `${SCHEME}:`);
@@ -72,97 +72,192 @@ export const resolveAbsolutePath = (message: string) => {
 }
 
 export function resolveRequestPath(message: RequestMessage) {
-  if (message.method === InitializeRequest.type.method) {
-    const initializeParams = message.params as InitializeParams;
-    initializeParams.processId = process.pid;
-  } else if (message.method === RegistrationRequest.method) {
-    const registrationParams = message.params as RegistrationParams;
-    if (registrationParams.registrations.length > 0) {
-      registrationParams.registrations[0].registerOptions
-        .documentSelector.push({ language: LanguageName.ballerina, scheme: `${SCHEME}` })
-    }
-  } else if (message.method === "typesManager/getTypes" || message.method === "typesManager/updateType"
-    || message.method === "jsonToRecordTypes/convert" || message.method === "xmlToRecordTypes/convert"
-    || message.method === "serviceDesign/getServiceFromSource" || message.method === "serviceDesign/updateFunction"
-    || message.method === "serviceDesign/addResource" || message.method === "expressionEditor/types"
-    || message.method === "serviceDesign/getListenerFromSource" || message.method === "serviceDesign/updateListener"
-    || message.method === "bi-diagram/getVisibleVariableTypes" || message.method === "serviceDesign/updateService"
-    || message.method === "expressionEditor/visibleVariableTypes" || message.method === "flowDesignService/getNodeTemplate"
-    || message.method === "flowDesignService/getSourceCode" || message.method === "serviceDesign/getListeners"
-    || message.method === "serviceDesign/getServiceModel" || message.method === "serviceDesign/addListener"
-    || message.method === "typesManager/updateTypes" || message.method === "flowDesignService/deleteFlowNode"
-    || message.method === "typesManager/createGraphqlClassType" || message.method === "typesManager/getGraphqlType"
-    || message.method === "serviceDesign/addFunction"
-  ) {
-    if (message.params && "filePath" in message.params && message.params.filePath) {
-      const inputPath = message.params.filePath as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      console.log("parse: ", URI.parse(inputPath))
-      console.log("fixedPath: ", fixedPath)
-      message.params.filePath = fixedPath;
-
-    }
-    else if (message.params && "filePathUri" in message.params && message.params.filePathUri) {
-      const inputPath = message.params.filePathUri as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      console.log("parse: ", URI.parse(inputPath))
-      console.log("fixedPath: ", fixedPath)
-      message.params.filePathUri = fixedPath;
-    }
-  } else if ((message.method === "designModelService/getDesignModel"
-    || message.method === "configEditor/getConfigVariables") 
-    && message.params && "projectPath" in message.params && message.params.projectPath
-  ) {
-      const inputPath = message.params.projectPath as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      console.log("parse: ", URI.parse(inputPath))
-      console.log("fixedPath: ", fixedPath)
-      message.params.projectPath = fixedPath;
-  } else if (message.method === "configEditor/updateConfigVariables" && message.params && "configFilePath" in message.params && message.params.configFilePath) {
-      const inputPath = message.params.configFilePath as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      console.log("parse: ", URI.parse(inputPath))
-      console.log("fixedPath: ", fixedPath)
-      message.params.configFilePath = fixedPath;
-  } else if (message.method === "serviceDesign/addService") {
-    if (message.params && "filePath" in message.params && message.params.filePath) {
-      const inputPath = message.params.filePath as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      message.params.filePath = fixedPath;
-    }
-    if (message.params && "service" in message.params
-      && typeof message.params.service === "object" && message.params.service &&
-      "properties" in message.params.service && typeof message.params.service.properties === "object" && message.params.service.properties
-      && "designApproach" in message.params.service.properties && typeof message.params.service.properties.designApproach === "object" && message.params.service.properties.designApproach
-      && "choices" in message.params.service.properties.designApproach && Array.isArray(message.params.service.properties.designApproach.choices) && message.params.service.properties.designApproach.choices
-    ) {
-      const choices = message.params.service.properties.designApproach.choices as any[];
-      const specUri = choices[1].properties.spec.value as string;
-      if (specUri) {
-        const fixedPath = URI.parse(specUri).path.substring(1);
-        message.params.service.properties.designApproach.choices[1].properties.spec.value = fixedPath;
+  switch (message.method) {
+    case InitializeRequest.type.method:
+      const initializeParams = message.params as InitializeParams;
+      initializeParams.processId = process.pid;
+      break;
+    case RegistrationRequest.method:
+      const registrationParams = message.params as RegistrationParams;
+      if (registrationParams.registrations.length > 0) {
+        registrationParams.registrations[0].registerOptions
+          .documentSelector.push({ language: LanguageName.ballerina, scheme: `${SCHEME}` })
       }
-    }
-  } else if (message.method === "openAPILSExtension/generateOpenAPI") {
-    if (message.params && "documentFilePath" in message.params && message.params.documentFilePath) {
-      const inputPath = message.params.documentFilePath as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      message.params.documentFilePath = fixedPath;
-      console.log("parse: ", URI.parse(inputPath))
-      console.log("fixedPath: ", fixedPath)
-    }
-  } else if (message.method === "flowDesignService/functionDefinition") {
-    if (message.params && "fileName" in message.params && message.params.fileName) {
-      const inputPath = message.params.fileName as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      message.params.fileName = fixedPath;
-    }
-    if (message.params && "projectPath" in message.params && message.params.projectPath) {
-      const inputPath = message.params.projectPath as string;
-      const fixedPath = URI.parse(inputPath).path.substring(1);
-      message.params.projectPath = fixedPath;
-    }
+      break;
+    case "typesManager/getTypes":
+    case "typesManager/updateType":
+    case "xmlToRecordTypes/convert":
+    case "serviceDesign/getServiceFromSource":
+    case "serviceDesign/updateFunction":
+    case "serviceDesign/addResource":
+    case "expressionEditor/types":
+    case "serviceDesign/getListenerFromSource":
+    case "serviceDesign/updateListener":
+    case "bi-diagram/getVisibleVariableTypes":
+    case "serviceDesign/updateService":
+    case "expressionEditor/visibleVariableTypes":
+    case "flowDesignService/getNodeTemplate":
+    case "flowDesignService/getSourceCode":
+    case "serviceDesign/getListeners":
+    case "serviceDesign/getServiceModel":
+    case "serviceDesign/addListener":
+    case "typesManager/updateTypes":
+    case "flowDesignService/deleteFlowNode":
+    case "typesManager/createGraphqlClassType":
+    case "typesManager/getGraphqlType":
+    case "serviceDesign/addFunction":
+    case "serviceDesign/getServiceClassModelFromSource":
+    case "serviceDesign/updateClassField":
+    case "serviceDesign/addField":
+      console.log(">>> case: ", message.method);
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        const inputPath = message.params.filePath as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.filePath = fixedPath;
+      }
+      break;
+    case "jsonToRecordTypes/convert":
+      if (message.params && "filePathUri" in message.params && message.params.filePathUri) {
+        const inputPath = message.params.filePathUri as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.filePathUri = fixedPath;
+      }
+      break;
+    case "designModelService/getDesignModel":
+    case "configEditor/getConfigVariables":
+      if (message.params && "projectPath" in message.params && message.params.projectPath) {
+        const inputPath = message.params.projectPath as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.projectPath = fixedPath;
+      }
+      break;
+    case "configEditor/updateConfigVariables":
+      if (message.params && "configFilePath" in message.params && message.params.configFilePath) {
+        const inputPath = message.params.configFilePath as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.configFilePath = fixedPath;
+      }
+      break;
+    case "serviceDesign/addService":
+      if (message.params && "filePath" in message.params && message.params.filePath) {
+        const inputPath = message.params.filePath as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.filePath = fixedPath;
+      }
+      if (message.params && "service" in message.params
+        && typeof message.params.service === "object" && message.params.service &&
+        "properties" in message.params.service && typeof message.params.service.properties === "object" && message.params.service.properties
+        && "designApproach" in message.params.service.properties && typeof message.params.service.properties.designApproach === "object" && message.params.service.properties.designApproach
+        && "choices" in message.params.service.properties.designApproach && Array.isArray(message.params.service.properties.designApproach.choices) && message.params.service.properties.designApproach.choices
+      ) {
+        const choices = message.params.service.properties.designApproach.choices as any[];
+        const specUri = choices[1].properties.spec.value as string;
+        if (specUri) {
+          const fixedPath = URI.parse(specUri).path.substring(1);
+          message.params.service.properties.designApproach.choices[1].properties.spec.value = fixedPath;
+        }
+      }
+      break;
+    case "openAPILSExtension/generateOpenAPI":
+      if (message.params && "documentFilePath" in message.params && message.params.documentFilePath) {
+        const inputPath = message.params.documentFilePath as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.documentFilePath = fixedPath;
+      }
+      break;
+    case "flowDesignService/functionDefinition":
+      if (message.params && "fileName" in message.params && message.params.fileName) {
+        const inputPath = message.params.fileName as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.fileName = fixedPath;
+      }
+      if (message.params && "projectPath" in message.params && message.params.projectPath) {
+        const inputPath = message.params.projectPath as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.projectPath = fixedPath;
+      }
+      break;
   }
+  // if (message.method === InitializeRequest.type.method) {
+  //   const initializeParams = message.params as InitializeParams;
+  //   initializeParams.processId = process.pid;
+  // } else if (message.method === RegistrationRequest.method) {
+  //   const registrationParams = message.params as RegistrationParams;
+  //   if (registrationParams.registrations.length > 0) {
+  //     registrationParams.registrations[0].registerOptions
+  //       .documentSelector.push({ language: LanguageName.ballerina, scheme: `${SCHEME}` })
+  //   }
+  // } else if (message.method === "typesManager/getTypes" || message.method === "typesManager/updateType"
+  //   || message.method === "jsonToRecordTypes/convert" || message.method === "xmlToRecordTypes/convert"
+  //   || message.method === "serviceDesign/getServiceFromSource" || message.method === "serviceDesign/updateFunction"
+  //   || message.method === "serviceDesign/addResource" || message.method === "expressionEditor/types"
+  //   || message.method === "serviceDesign/getListenerFromSource" || message.method === "serviceDesign/updateListener"
+  //   || message.method === "bi-diagram/getVisibleVariableTypes" || message.method === "serviceDesign/updateService"
+  //   || message.method === "expressionEditor/visibleVariableTypes" || message.method === "flowDesignService/getNodeTemplate"
+  //   || message.method === "flowDesignService/getSourceCode" || message.method === "serviceDesign/getListeners"
+  //   || message.method === "serviceDesign/getServiceModel" || message.method === "serviceDesign/addListener"
+  //   || message.method === "typesManager/updateTypes" || message.method === "flowDesignService/deleteFlowNode"
+  //   || message.method === "typesManager/createGraphqlClassType" || message.method === "typesManager/getGraphqlType"
+  //   || message.method === "serviceDesign/addFunction"
+  // ) {
+  //   if (message.params && "filePath" in message.params && message.params.filePath) {
+  //     const inputPath = message.params.filePath as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.filePath = fixedPath;
+  //   }
+  //   else if (message.params && "filePathUri" in message.params && message.params.filePathUri) {
+  //     const inputPath = message.params.filePathUri as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.filePathUri = fixedPath;
+  //   }
+  // } else if ((message.method === "designModelService/getDesignModel"
+  //   || message.method === "configEditor/getConfigVariables") 
+  //   && message.params && "projectPath" in message.params && message.params.projectPath
+  // ) {
+  //     const inputPath = message.params.projectPath as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.projectPath = fixedPath;
+  // } else if (message.method === "configEditor/updateConfigVariables" && message.params && "configFilePath" in message.params && message.params.configFilePath) {
+  //     const inputPath = message.params.configFilePath as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.configFilePath = fixedPath;
+  // } else if (message.method === "serviceDesign/addService") {
+  //   if (message.params && "filePath" in message.params && message.params.filePath) {
+  //     const inputPath = message.params.filePath as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.filePath = fixedPath;
+  //   }
+  //   if (message.params && "service" in message.params
+  //     && typeof message.params.service === "object" && message.params.service &&
+  //     "properties" in message.params.service && typeof message.params.service.properties === "object" && message.params.service.properties
+  //     && "designApproach" in message.params.service.properties && typeof message.params.service.properties.designApproach === "object" && message.params.service.properties.designApproach
+  //     && "choices" in message.params.service.properties.designApproach && Array.isArray(message.params.service.properties.designApproach.choices) && message.params.service.properties.designApproach.choices
+  //   ) {
+  //     const choices = message.params.service.properties.designApproach.choices as any[];
+  //     const specUri = choices[1].properties.spec.value as string;
+  //     if (specUri) {
+  //       const fixedPath = URI.parse(specUri).path.substring(1);
+  //       message.params.service.properties.designApproach.choices[1].properties.spec.value = fixedPath;
+  //     }
+  //   }
+  // } else if (message.method === "openAPILSExtension/generateOpenAPI") {
+  //   if (message.params && "documentFilePath" in message.params && message.params.documentFilePath) {
+  //     const inputPath = message.params.documentFilePath as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.documentFilePath = fixedPath;
+  //   }
+  // } else if (message.method === "flowDesignService/functionDefinition") {
+  //   if (message.params && "fileName" in message.params && message.params.fileName) {
+  //     const inputPath = message.params.fileName as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.fileName = fixedPath;
+  //   }
+  //   if (message.params && "projectPath" in message.params && message.params.projectPath) {
+  //     const inputPath = message.params.projectPath as string;
+  //     const fixedPath = URI.parse(inputPath).path.substring(1);
+  //     message.params.projectPath = fixedPath;
+  //   }
+  // }
   return message;
 }
 
@@ -178,23 +273,20 @@ export function resolveResponseMessage(message: ResponseMessage) {
       let fixedPath = oldFilePath.replace(/\\/g, "/").replace(BASE_DIR, "");
       fixedPath = `${SCHEME}:${fixedPath}`
       conn.location.filePath = fixedPath;
-      console.log({ "old": oldFilePath, "fix": fixedPath })
     });
     listeners.forEach(listener => {
       const oldFilePath = listener.location.filePath as string;
       let fixedPath = oldFilePath.replace(/\\/g, "/").replace(BASE_DIR, "")
       fixedPath = `${SCHEME}:${fixedPath}`
       listener.location.filePath = fixedPath;
-      console.log({ "old": oldFilePath, "fix": fixedPath })
     });
     services.forEach(service => {
       const oldFilePath = service.location.filePath as string;
       let fixedPath = oldFilePath.replace(/\\/g, "/").replace(BASE_DIR, "")
       fixedPath = `${SCHEME}:${fixedPath}`
       service.location.filePath = fixedPath;
-      console.log({ "old": oldFilePath, "fix": fixedPath })
     });
-  } 
+  }
 
   return message;
 }
