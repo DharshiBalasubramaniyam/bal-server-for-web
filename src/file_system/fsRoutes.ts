@@ -112,7 +112,7 @@ fsRouter.delete("/remove", (req: Request, res: Response) => {
     });
 })
 
-fsRouter.post("/mdir", (req: Request, res: Response) => {
+fsRouter.post("/mkdir", (req: Request, res: Response) => {
     const dirPath = path.join(BASE_DIR, req.query.url as string);
 
     // Check if the directory already exists
