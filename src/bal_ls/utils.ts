@@ -177,6 +177,13 @@ export function resolveRequestPath(message: RequestMessage) {
         message.params.projectPath = fixedPath;
       }
       break;
+    case "persistERGeneratorService/getPersistERModels":
+      if (message.params && "documentUri" in message.params && message.params.documentUri) {
+        const inputPath = message.params.documentUri as string;
+        const fixedPath = URI.parse(inputPath).path.substring(1);
+        message.params.documentUri = fixedPath;
+      }
+      break;
   }
   return message;
 }
