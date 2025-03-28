@@ -1,0 +1,272 @@
+openapi: 3.0.1
+info:
+  title: Ballerina Web Editor API
+  description: API for managing file system operations, Ballerina-related data and Ballerina language server.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/
+paths:
+  /test:
+    get:
+      operationId: getTestMessage
+      summary: Test endpoint
+      responses: 
+        '200':
+          description: Test successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Hello, world!
+
+  # /fs/clone/{userId}/{repoName}:
+  #   get:
+  #     summary: Clone a repository
+  #     parameters:
+  #       - name: userId
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: repoName
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Repository cloned successfully
+  #       "500":
+  #         description: Error cloning repository
+
+  # /fs/stat:
+  #   get:
+  #     summary: Get file/directory stats
+  #     parameters:
+  #       - name: scheme
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: url
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Returns file statistics
+  #       "404":
+  #         description: File not found
+
+  # /fs/read:
+  #   get:
+  #     summary: Read a file or list a directory
+  #     parameters:
+  #       - name: scheme
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: url
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Returns file content or directory listing
+  #       "500":
+  #         description: Unable to read
+
+  # /fs/write:
+  #   post:
+  #     summary: Write to a file
+  #     parameters:
+  #       - name: url
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               content:
+  #                 type: string
+  #     responses:
+  #       "200":
+  #         description: File written successfully
+  #       "500":
+  #         description: Error writing file
+
+  # /fs/remove:
+  #   delete:
+  #     summary: Remove a file or directory
+  #     parameters:
+  #       - name: url
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Path removed successfully
+  #       "500":
+  #         description: Error removing path
+
+  # /fs/mkdir:
+  #   post:
+  #     summary: Create a directory
+  #     parameters:
+  #       - name: url
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Directory created successfully
+  #       "403":
+  #         description: Directory already exists
+  #       "500":
+  #         description: Error creating directory
+
+  # /fs/rename:
+  #   post:
+  #     summary: Rename a file or directory
+  #     parameters:
+  #       - name: oldUrl
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: newUrl
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Rename successful
+  #       "404":
+  #         description: Source file or folder not found
+  #       "500":
+  #         description: Error renaming file or folder
+
+  # /fs/copy:
+  #   post:
+  #     summary: Copy a file or directory
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               source:
+  #                 type: string
+  #               destination:
+  #                 type: string
+  #               overwrite:
+  #                 type: boolean
+  #     responses:
+  #       "200":
+  #         description: Copy successful
+  #       "400":
+  #         description: Missing source or destination
+  #       "404":
+  #         description: Source not found
+  #       "409":
+  #         description: Destination already exists
+  #       "500":
+  #         description: Error copying file
+
+  # /bala/libraryList/{kind}:
+  #   get:
+  #     summary: Get list of libraries
+  #     parameters:
+  #       - name: kind
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Returns the libraries list
+  #       "500":
+  #         description: Failed to fetch libraries
+
+  # /bala/allResourses:
+  #   get:
+  #     summary: Get all available resources
+  #     responses:
+  #       "200":
+  #         description: Returns a list of available resources
+  #       "500":
+  #         description: Failed to fetch resources
+
+  # /bala/librarydata/{orgName}/{moduleName}/{version}:
+  #   get:
+  #     summary: Get library data
+  #     parameters:
+  #       - name: orgName
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: moduleName
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: version
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "200":
+  #         description: Returns library data
+  #       "500":
+  #         description: Failed to fetch data
+
+  # /bala/info:
+  #   get:
+  #     summary: Get Ballerina info
+  #     responses:
+  #       "200":
+  #         description: Returns Ballerina home info
+  #       "500":
+  #         description: Internal server error
+
+  # /bala/pull:
+  #   post:
+  #     summary: Pull updates using a command
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               command:
+  #                 type: string
+  #     responses:
+  #       "200":
+  #         description: Command executed successfully
+  #       "500":
+  #         description: Error executing command
+
+  # /bal:
+  #   get:
+  #     summary: WebSocket upgrade endpoint
+  #     responses:
+  #       "101":
+  #         description: WebSocket connection upgraded

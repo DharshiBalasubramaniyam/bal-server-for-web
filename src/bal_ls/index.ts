@@ -2,14 +2,12 @@ import { WebSocketServer } from "ws";
 import { IncomingMessage, Server } from "node:http";
 import { URL } from "node:url";
 import { Socket } from "node:net";
-import { type IWebSocket, RequestMessage, WebSocketMessageReader, WebSocketMessageWriter } from "vscode-ws-jsonrpc";
+import { type IWebSocket, WebSocketMessageReader, WebSocketMessageWriter } from "vscode-ws-jsonrpc";
 import { createConnection, createServerProcess, forward } from "vscode-ws-jsonrpc/lib/server";
-import { Message, InitializeRequest, type InitializeResult, type InitializeParams, RegistrationParams, RegistrationRequest } from "vscode-languageserver-protocol";
-import { LanguageName, LanguageServerRunConfig, SCHEME } from "./models";
-import { getBallerinaHome, resolveAbsolutePath, resolveRequestPath, resolveResponseMessage } from "./utils";
-import { URI } from "vscode-uri";
+import { Message } from "vscode-languageserver-protocol";
+import { LanguageServerRunConfig } from "./models";
+import { resolveAbsolutePath, resolveRequestPath, resolveResponseMessage } from "./utils";
 import os from "os";
-import { BASE_DIR } from "../file_system/fsRoutes";
 
 export const runBalServer = async (httpServer: Server) => {
   let runCommand = "bal";

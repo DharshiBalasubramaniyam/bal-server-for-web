@@ -6,17 +6,20 @@ import fsRouter, { BASE_DIR } from "./file_system/fsRoutes"
 import balRouter from "./file_system/balRoutes"
 
 const app: Express = express();
-const PORT: number = 9091;
+const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
 app.use("/fs", fsRouter);
 app.use("/bala", balRouter);
 
+app.get("/test", (req, res) => {
+    res.send("test works");
+})
+
 const httpServer: Server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log("base dir: ", BASE_DIR);
-
 });
 
 runBalServer(httpServer);
