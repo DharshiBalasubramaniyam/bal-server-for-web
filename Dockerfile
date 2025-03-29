@@ -18,7 +18,7 @@ RUN npm ci --only=production
 COPY . .
 
 # Build the TypeScript code
-RUN npm run build
+RUN npm run compile
 
 # Use a minimal runtime image
 FROM node:18-alpine
