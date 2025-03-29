@@ -6,7 +6,7 @@ import fsRouter, { BASE_DIR } from "./file_system/fsRoutes"
 import balRouter from "./file_system/balRoutes"
 
 const app: Express = express();
-const PORT: number = 9091;
+const PORT: number = 8080;
 app.use(cors());
 app.use(express.json());
 
