@@ -18,7 +18,7 @@ RUN npm ci  # Installs both production & dev dependencies
 COPY . .
 
 # Build the TypeScript code
-RUN npm run build
+RUN npm run compile
 
 # Remove dev dependencies to keep the final image small
 RUN npm prune --production
