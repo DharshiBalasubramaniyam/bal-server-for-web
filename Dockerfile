@@ -4,21 +4,24 @@ FROM node:18-alpine as build
 # Set environment variables
 ENV NODE_ENV=production
 
-# Create a non-root user with UID 10014 (within required range)
+# Create a non-root user with UID 10014 (required by Checkov)
 RUN addgroup -S appgroup && adduser -S -u 10014 appuser -G appgroup
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files and install ALL dependencies (including dev dependencies)
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN npm ci  # Installs both production & dev dependencies
 
 # Copy the rest of the application files
 COPY . .
 
 # Build the TypeScript code
-RUN npm run compile
+RUN npm run build
+
+# Remove dev dependencies to keep the final image small
+RUN npm prune --production
 
 # Use a minimal runtime image
 FROM node:18-alpine
@@ -26,7 +29,7 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy the built files from the previous stage
+# Copy the built files and production dependencies from the build stage
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY package.json .
