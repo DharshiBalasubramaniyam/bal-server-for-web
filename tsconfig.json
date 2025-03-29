@@ -6,6 +6,9 @@
     "esModuleInterop": true,                             
     "forceConsistentCasingInFileNames": true,            
     "strict": true,                                      
-    "skipLibCheck": true                                 
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "types": ["node", "ws", "express", "cors"],  
+    "typeRoots": ["node_modules/@types"]                               
   }
 }

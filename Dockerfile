@@ -2,7 +2,7 @@
 FROM node:18-alpine as build
 
 # Set environment variables
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 # Create a non-root user with UID 10014 (required by Checkov)
 RUN addgroup -S appgroup && adduser -S -u 10014 appuser -G appgroup
