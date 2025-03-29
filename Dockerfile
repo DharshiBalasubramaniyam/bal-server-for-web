@@ -4,8 +4,8 @@ FROM node:18-alpine as build
 # Set environment variables
 ENV NODE_ENV=production
 
-# Create a non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Create a non-root user with UID 10014 (within required range)
+RUN addgroup -S appgroup && adduser -S -u 10014 appuser -G appgroup
 
 # Set working directory
 WORKDIR /app
@@ -31,8 +31,8 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY package.json .
 
-# Use the non-root user
-USER appuser
+# Set non-root user (UID 10014)
+USER 10014
 
 # Expose the application port
 EXPOSE 3000
