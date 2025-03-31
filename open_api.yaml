@@ -5,6 +5,7 @@ info:
   version: 1.0.0
 servers:
   - url: http://localhost:8080/
+  - url: ws://localhost:8080/bal/
 paths:
   /test:
     get:
